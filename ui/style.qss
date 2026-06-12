@@ -136,6 +136,28 @@
     border-radius: 4px;
 }
 
+/* Restore button */
+#todo_restore_btn {
+    background: transparent;
+    border: none;
+}
+
+#todo_restore_btn:hover {
+    background-color: #d4c9b8;
+    border-radius: 4px;
+}
+
+/* Purge button */
+#todo_purge_btn {
+    background: transparent;
+    border: none;
+}
+
+#todo_purge_btn:hover {
+    background-color: #e0c8c0;
+    border-radius: 4px;
+}
+
 /* Scrollbar track */
 QScrollBar:vertical {
     background: #ebe5da;
