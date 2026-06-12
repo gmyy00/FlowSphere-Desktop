@@ -1,15 +1,18 @@
+/* Main card container */
 #card {
     background-color: #f5f0e8;
     border-radius: 16px;
     border: 1px solid #d4c9b8;
 }
 
+/* Title label */
 #title {
     font-size: 16px;
     font-weight: bold;
     color: #3c3631;
 }
 
+/* Close button */
 #close_btn {
     background: transparent;
     border: none;
@@ -20,6 +23,7 @@
     border-radius: 4px;
 }
 
+/* Pin button */
 #pin_btn {
     background: transparent;
     border: none;
@@ -30,6 +34,7 @@
     border-radius: 4px;
 }
 
+/* Search input */
 #search {
     background-color: #ebe5da;
     border: 1px solid #d4c9b8;
@@ -48,22 +53,26 @@
     color: #a09080;
 }
 
+/* Horizontal separator */
 #separator {
     border: none;
     border-top: 1px solid #d4c9b8;
     margin: 0 16px;
 }
 
+/* Scroll area */
 #todo_scroll {
     border: none;
     background: transparent;
 }
 
+/* Todo list container */
 #todo_list {
     border: none;
     background: transparent;
 }
 
+/* Todo card */
 #todo_card {
     background-color: #ebe5da;
     border-radius: 10px;
@@ -72,6 +81,7 @@
     margin: 4px 16px;
 }
 
+/* Todo description text */
 #todo_description {
     font-size: 13px;
     color: #3c3631;
@@ -79,6 +89,7 @@
     background: transparent;
 }
 
+/* Todo info line (notification + repeat) */
 #todo_info {
     font-size: 11px;
     color: #a09080;
@@ -86,11 +97,13 @@
     background: transparent;
 }
 
+/* Action buttons container */
 #todo_actions {
     border: none;
     background: transparent;
 }
 
+/* Checkbox button */
 #todo_checkbox {
     background: transparent;
     border: none;
@@ -101,6 +114,7 @@
     border-radius: 4px;
 }
 
+/* Edit button */
 #todo_edit_btn {
     background: transparent;
     border: none;
@@ -111,6 +125,7 @@
     border-radius: 4px;
 }
 
+/* Delete button */
 #todo_delete_btn {
     background: transparent;
     border: none;
