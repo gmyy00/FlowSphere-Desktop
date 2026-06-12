@@ -145,8 +145,7 @@ class MainWindow(QMainWindow):
         # 清除现有卡片 / Clear existing cards
         while self._todo_layout.count():
             item = self._todo_layout.takeAt(0)
-            widget = item.widget()
-            if widget:
+            if item and (widget := item.widget()):
                 widget.deleteLater()
 
         if todos is None:
@@ -194,8 +193,12 @@ class MainWindow(QMainWindow):
         """
         for i in range(self._todo_layout.count()):
             item = self._todo_layout.itemAt(i)
+            if not item:
+                continue
             widget = item.widget()
-            if widget and hasattr(widget, 'todo') and widget.todo.id == todo_id:
+            if not isinstance(widget, TodoCard):
+                continue
+            if widget.todo.id == todo_id:
                 self._todo_layout.removeWidget(widget)
                 widget.deleteLater()
                 break

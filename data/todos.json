@@ -14,7 +14,7 @@
     "notification": "2026-06-11T20:00",
     "repeat": "daily",
     "done": false,
-    "is_deleted": false,
+    "is_deleted": true,
     "created_at": "2026-05-01T08:00"
   },
   {
@@ -49,7 +49,7 @@
     "description": "预约年度体检，检查身体健康",
     "notification": "2026-12-15T09:00",
     "repeat": "yearly",
-    "done": true,
+    "done": false,
     "is_deleted": false,
     "created_at": "2026-01-01T00:00"
   },
@@ -58,7 +58,7 @@
     "description": "审查团队提交的代码，确保代码质量",
     "notification": "2026-06-10T15:00",
     "repeat": "none",
-    "done": true,
+    "done": false,
     "is_deleted": false,
     "created_at": "2026-06-08T11:00"
   },
@@ -67,7 +67,7 @@
     "description": "准备项目启动会议的PPT和演示材料",
     "notification": "2026-06-09T13:00",
     "repeat": "none",
-    "done": true,
+    "done": false,
     "is_deleted": false,
     "created_at": "2026-06-05T09:30"
   },

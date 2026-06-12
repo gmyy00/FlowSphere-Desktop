@@ -94,7 +94,6 @@ class TodoCard(QFrame):
 
         text_widget = QWidget()
         text_widget.setLayout(text_layout)
-        text_widget.setStyleSheet("background: transparent;")
         layout.addWidget(text_widget, 1)
 
         # 操作按钮区域 / Action buttons area
@@ -121,8 +120,8 @@ class TodoCard(QFrame):
         actions_layout.addWidget(self._delete_btn)
 
         actions_widget = QWidget()
+        actions_widget.setObjectName("todo_actions")
         actions_widget.setLayout(actions_layout)
-        actions_widget.setStyleSheet("background: transparent;")
         layout.addWidget(actions_widget)
 
     def _get_checkbox_icon(self):
