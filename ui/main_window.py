@@ -1,8 +1,15 @@
 from pathlib import Path
 import ctypes
-from PySide6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QLineEdit, QFrame
+from PySide6.QtWidgets import (
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
+    QLabel, QPushButton, QLineEdit, QFrame,
+    QScrollArea, QSizePolicy
+)
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon
+
+from core.services.todo_service import TodoService
+from ui.todo_card import TodoCard
 
 STYLE_PATH = Path(__file__).parent / "style.qss"
 ICON_DIR = Path(__file__).parent / "source"
@@ -27,6 +34,10 @@ class MainWindow(QMainWindow):
 
         # Track mouse position for window dragging
         self._drag_pos = None
+
+        # Initialize todo service
+        data_dir = str(Path(__file__).parent.parent / "data")
+        self.service = TodoService(data_dir)
 
         # Load external stylesheet
         self.setStyleSheet(STYLE_PATH.read_text())
@@ -66,16 +77,17 @@ class MainWindow(QMainWindow):
         self._close_btn.clicked.connect(self.close)
         header.addWidget(self._close_btn)
 
-        # Vertical layout for the card content
+        # Main vertical layout
         layout = QVBoxLayout(container)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addLayout(header)
 
         # Search input field
-        search = QLineEdit()
-        search.setObjectName("search")
-        search.setPlaceholderText("Search...")
-        layout.addWidget(search)
+        self._search_input = QLineEdit()
+        self._search_input.setObjectName("search")
+        self._search_input.setPlaceholderText("Search...")
+        self._search_input.textChanged.connect(self._on_search)
+        layout.addWidget(self._search_input)
 
         # Horizontal separator line
         line = QFrame()
@@ -83,8 +95,66 @@ class MainWindow(QMainWindow):
         line.setFrameShape(QFrame.Shape.HLine)
         layout.addWidget(line)
 
-        # Push remaining content to bottom
-        layout.addStretch()
+        # Scrollable todo list
+        scroll = QScrollArea()
+        scroll.setObjectName("todo_scroll")
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+        self._todo_list = QWidget()
+        self._todo_list.setObjectName("todo_list")
+        self._todo_layout = QVBoxLayout(self._todo_list)
+        self._todo_layout.setContentsMargins(0, 0, 0, 0)
+        self._todo_layout.setSpacing(4)
+        self._todo_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        scroll.setWidget(self._todo_list)
+
+        layout.addWidget(scroll, 1)
+
+        # Load todos
+        self._load_todos()
+
+    def _load_todos(self, todos=None):
+        """Populate the list with todo cards."""
+        # Clear existing cards
+        while self._todo_layout.count():
+            item = self._todo_layout.takeAt(0)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+
+        if todos is None:
+            todos = self.service.list_todos()
+
+        for todo in todos:
+            card = TodoCard(todo, self.service)
+            card.todo_changed.connect(self._on_todo_changed)
+            card.todo_deleted.connect(self._on_todo_deleted)
+            self._todo_layout.addWidget(card)
+
+    def _on_search(self, text):
+        """Filter todos by search text."""
+        if not text.strip():
+            self._load_todos()
+        else:
+            todos = self.service.search_todos_by_description(text)
+            self._load_todos(todos)
+
+    def _on_todo_changed(self, todo_id):
+        """Handle todo state change."""
+        pass  # Card already updated itself
+
+    def _on_todo_deleted(self, todo_id):
+        """Remove deleted todo from list."""
+        for i in range(self._todo_layout.count()):
+            item = self._todo_layout.itemAt(i)
+            widget = item.widget()
+            if widget and hasattr(widget, 'todo') and widget.todo.id == todo_id:
+                self._todo_layout.removeWidget(widget)
+                widget.deleteLater()
+                break
 
     # --- Window dragging support ---
 
