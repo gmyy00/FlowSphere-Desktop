@@ -44,7 +44,7 @@ class TodoService:
     使用示例：
         >>> service = TodoService()
         >>> todos = service.list_todos()
-        >>> service.create_todo({"title": "新待办"})
+        >>> service.create_todo({"description": "新待办"})
     """
     
     def __init__(self, data_dir: str = "data"):
@@ -80,7 +80,7 @@ class TodoService:
     
     def list_active_todos(self) -> List[Todo]:
         """
-        获取所有未软删除的待办事项列表（别名，语义更清晰）
+        获取所有未软删除的待办事项列表（别名）
         
         Returns:
             List[Todo]: 未软删除的待办事项列表
@@ -101,6 +101,16 @@ class TodoService:
             if todo.is_deleted:
                 todos.append(todo)
         return todos
+    
+    def list_recycle_bin(self) -> List[Todo]:
+        """
+        获取所有已软删除的待办事项列表（别名）
+        即为获取所有回收站中的待办事项列表
+        
+        Returns:
+            List[Todo]: 回收站中的待办事项列表
+        """
+        return self.list_deleted_todos()
     
     def get_todo(self, todo_id: str) -> Optional[Todo]:
         """
@@ -142,29 +152,6 @@ class TodoService:
         
         return result
     
-    def search_todos_by_title(self, keyword: str) -> List[Todo]:
-        """
-        根据 title 关键字搜索待办事项
-        
-        Args:
-            keyword: 搜索关键字
-            
-        Returns:
-            List[Todo]: 匹配的待办事项列表
-        """
-        if not keyword:
-            return self.list_todos()
-        
-        todos = self.list_todos()
-        result = []
-        keyword_lower = keyword.lower()
-        
-        for todo in todos:
-            if keyword_lower in todo.title.lower():
-                result.append(todo)
-        
-        return result
-    
     def create_todo(self, todo_data: dict) -> Optional[Todo]:
         """
         创建新的待办事项
@@ -175,17 +162,16 @@ class TodoService:
         Returns:
             Optional[Todo]: 新创建的待办事项对象
         """
-        logger.info("创建新待办事项: %s", todo_data.get("title", "未命名"))
+        logger.info("创建新待办事项: %s", todo_data.get("description", "未命名"))
         
         # 校验必填字段
-        if not todo_data.get("title"):
-            logger.warning("创建待办事项失败: 标题为空")
-            raise ValueError("待办标题不能为空")
+        if not todo_data.get("description"):
+            logger.warning("创建待办事项失败: 描述为空")
+            raise ValueError("待办描述不能为空")
         
         # 创建 Todo 对象
         todo = Todo(
-            title=todo_data["title"],
-            description=todo_data.get("description"),
+            description=todo_data["description"],
             notification=todo_data.get("notification"),
             repeat=todo_data.get("repeat", "none"),
             done=todo_data.get("done", False),
@@ -200,7 +186,7 @@ class TodoService:
             logger.info("待办事项创建成功，ID: %s", todo.id)
             return todo
         else:
-            logger.error("待办事项创建失败，标题: %s", todo_data["title"])
+            logger.error("待办事项创建失败，描述: %s", todo_data["description"])
             raise Exception("创建待办事项失败")
     
     def update_todo(self, todo_data: dict) -> Optional[Todo]:
@@ -227,8 +213,6 @@ class TodoService:
             raise ValueError("待办事项不存在")
         
         # 更新字段
-        if "title" in todo_data:
-            existing_todo.title = todo_data["title"]
         if "description" in todo_data:
             existing_todo.description = todo_data["description"]
         if "notification" in todo_data:
@@ -465,27 +449,7 @@ class TodoService:
                 continue
         
         return pending_reminders
-    
-    def mark_reminded(self, todo_id: str) -> bool:
-        """
-        标记待办事项已提醒
-        
-        Args:
-            todo_id: 待办事项 ID
-            
-        Returns:
-            bool: 标记是否成功
-        """
-        # 获取待办事项
-        todo = self.get_todo(todo_id)
-        if not todo:
-            return False
-        
-        # 由于当前模型没有 reminded 字段，我们可以通过完成状态来标记
-        # 或者可以在未来扩展模型
-        
-        return True
-    
+
     def count_todos(self) -> int:
         """
         获取未软删除的待办事项总数

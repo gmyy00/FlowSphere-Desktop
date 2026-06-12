@@ -17,9 +17,7 @@
     >>> from models import Todo
     >>> # 创建待办
     >>> todo = Todo(
-    ...     title="完成项目文档",
     ...     description="需要完成设计文档",
-    ...     deadline="2026-06-15T18:00",
     ...     notification="2026-06-15T17:30"
     ... )
 """

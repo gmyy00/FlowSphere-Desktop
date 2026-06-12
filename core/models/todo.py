@@ -30,8 +30,7 @@ class Todo:
     
     字段说明：
         - id: 唯一标识符，使用uuid4自动生成
-        - title: 待办标题，必填字段
-        - description: 待办的文字描述，可选字段
+        - description: 待办的文字描述，必填字段
         - notification: 提醒时间，ISO 8601格式，精确到分钟
         - repeat: 重复规则枚举值
         - done: 完成状态，默认为False
@@ -39,7 +38,6 @@ class Todo:
     
     使用示例：
         >>> todo = Todo(
-        ...     title="完成项目文档",
         ...     description="需要完成设计文档",
         ...     notification="2026-06-15T17:30"
         ... )
@@ -50,11 +48,8 @@ class Todo:
     # 唯一标识符，使用uuid4生成，确保本地唯一性
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     
-    # 待办标题，必填字段
-    title: str = ""
-    
-    # 待办的文字描述，可选字段
-    description: Optional[str] = None
+    # 待办的文字描述，必填字段
+    description: str = ""
     
     # 提醒时间，ISO 8601格式，精确到分钟
     # 储存完整的具体时间，用于设置提醒时间
@@ -87,13 +82,12 @@ class Todo:
             dict: 包含所有字段的字典对象
             
         使用示例：
-            >>> todo = Todo(title="测试")
+            >>> todo = Todo(description="测试")
             >>> data = todo.to_dict()
-            >>> print(data["title"])  # "测试"
+            >>> print(data["description"])  # "测试"
         """
         return {
             "id": self.id,
-            "title": self.title,
             "description": self.description,
             "notification": self.notification,
             "repeat": self.repeat,
@@ -116,28 +110,19 @@ class Todo:
             Todo: 新创建的Todo对象
             
         使用示例：
-            >>> data = {"title": "测试", "done": False}
+            >>> data = {"description": "测试", "done": False}
             >>> todo = Todo.from_dict(data)
-            >>> print(todo.title)  # "测试"
+            >>> print(todo.description)  # "测试"
         """
         if not data:
             return cls()
         
         return cls(
             id=data.get("id", str(uuid.uuid4())),
-            title=data.get("title", ""),
-            description=data.get("description"),
+            description=data.get("description", ""),
             notification=data.get("notification"),
             repeat=data.get("repeat", "none"),
             done=data.get("done", False),
             is_deleted=data.get("is_deleted", False),
             created_at=data.get("created_at", "")
         )
-        
-        try:
-            from datetime import datetime
-            deadline_time = datetime.fromisoformat(self.deadline)
-            now = datetime.now()
-            return now > deadline_time
-        except (ValueError, TypeError):
-            return False

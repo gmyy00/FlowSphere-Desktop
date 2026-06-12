@@ -120,7 +120,7 @@ class JsonStorage:
             
         使用示例：
             >>> storage = JsonStorage("data/todos.json")
-            >>> success = storage.write([{"id": "1", "title": "test"}])
+            >>> success = storage.write([{"id": "1", "description": "test"}])
             >>> print(success)  # True
         """
         logger.debug("写入 JSON 文件: %s", self.file_path)
@@ -185,7 +185,7 @@ class JsonStorage:
             
         使用示例：
             >>> storage = JsonStorage("data/todos.json")
-            >>> success = storage.append({"id": "2", "title": "new item"})
+            >>> success = storage.append({"id": "2", "description": "new item"})
         """
         logger.debug("向 JSON 文件追加数据: %s", self.file_path)
         
@@ -225,7 +225,7 @@ class JsonStorage:
             
         使用示例：
             >>> storage = JsonStorage("data/todos.json")
-            >>> success = storage.update({"id": "1", "title": "updated"})
+            >>> success = storage.update({"id": "1", "description": "updated"})
         """
         logger.debug("更新 JSON 文件中的数据: %s", self.file_path)
         
