@@ -32,7 +32,6 @@ class Todo:
         - id: 唯一标识符，使用uuid4自动生成
         - title: 待办标题，必填字段
         - description: 待办的文字描述，可选字段
-        - deadline: 截止时间，ISO 8601格式，精确到分钟
         - notification: 提醒时间，ISO 8601格式，精确到分钟
         - repeat: 重复规则枚举值
         - done: 完成状态，默认为False
@@ -42,7 +41,6 @@ class Todo:
         >>> todo = Todo(
         ...     title="完成项目文档",
         ...     description="需要完成设计文档",
-        ...     deadline="2026-06-15T18:00",
         ...     notification="2026-06-15T17:30"
         ... )
         >>> data = todo.to_dict()
@@ -58,10 +56,6 @@ class Todo:
     # 待办的文字描述，可选字段
     description: Optional[str] = None
     
-    # 截止时间，ISO 8601格式，精确到分钟
-    # 根据规则：截止时间早于当前时间时允许保存，但UI标记为逾期
-    deadline: Optional[str] = None
-    
     # 提醒时间，ISO 8601格式，精确到分钟
     # 储存完整的具体时间，用于设置提醒时间
     # 业务层会根据 notification 和 repeat 字段组合生成展示文本
@@ -75,6 +69,10 @@ class Todo:
     # 完成状态，默认为False（未完成）
     # 根据规则：标记为done=true后停止提醒
     done: bool = False
+    
+    # 软删除标记，默认为False（未删除）
+    # 设置为True后，该待办事项将被隐藏但不真正删除
+    is_deleted: bool = False
     
     # 创建时间，ISO 8601格式
     created_at: str = field(default_factory=lambda: "")
@@ -97,10 +95,10 @@ class Todo:
             "id": self.id,
             "title": self.title,
             "description": self.description,
-            "deadline": self.deadline,
             "notification": self.notification,
             "repeat": self.repeat,
             "done": self.done,
+            "is_deleted": self.is_deleted,
             "created_at": self.created_at
         }
     
@@ -129,9 +127,17 @@ class Todo:
             id=data.get("id", str(uuid.uuid4())),
             title=data.get("title", ""),
             description=data.get("description"),
-            deadline=data.get("deadline"),
             notification=data.get("notification"),
             repeat=data.get("repeat", "none"),
             done=data.get("done", False),
+            is_deleted=data.get("is_deleted", False),
             created_at=data.get("created_at", "")
         )
+        
+        try:
+            from datetime import datetime
+            deadline_time = datetime.fromisoformat(self.deadline)
+            now = datetime.now()
+            return now > deadline_time
+        except (ValueError, TypeError):
+            return False

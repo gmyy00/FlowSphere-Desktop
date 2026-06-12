@@ -25,6 +25,11 @@ import tempfile
 from pathlib import Path
 from typing import Any, List, Optional
 
+from core.logger import Logger
+
+# 获取模块日志记录器
+logger = Logger.get_logger(__name__)
+
 
 class JsonStorage:
     """
@@ -70,8 +75,11 @@ class JsonStorage:
             >>> data = storage.read()
             >>> print(len(data))  # 数据条数
         """
+        logger.debug("读取 JSON 文件: %s", self.file_path)
+        
         # 如果文件不存在，返回空列表
         if not self.file_path.exists():
+            logger.debug("JSON 文件不存在: %s", self.file_path)
             return []
         
         try:
@@ -81,16 +89,20 @@ class JsonStorage:
             
             # 确保返回的是列表
             if not isinstance(data, list):
+                logger.warning("JSON 文件格式错误，期望列表类型: %s", self.file_path)
                 return []
             
+            logger.debug("JSON 文件读取成功，数据条数: %d", len(data))
             return data
             
         except json.JSONDecodeError:
             # JSON 格式损坏，备份原文件
+            logger.error("JSON 文件格式损坏: %s", self.file_path)
             self._backup_corrupted_file()
             return []
-        except Exception:
+        except Exception as e:
             # 其他异常，返回空列表
+            logger.error("读取 JSON 文件时发生错误: %s", str(e))
             return []
     
     def write(self, data: List[dict]) -> bool:
@@ -111,6 +123,8 @@ class JsonStorage:
             >>> success = storage.write([{"id": "1", "title": "test"}])
             >>> print(success)  # True
         """
+        logger.debug("写入 JSON 文件: %s", self.file_path)
+        
         try:
             # 确保数据是列表
             if not isinstance(data, list):
@@ -143,15 +157,18 @@ class JsonStorage:
                 if backup_path.exists():
                     backup_path.unlink()
                 
+                logger.debug("JSON 文件写入成功，数据条数: %d", len(data))
                 return True
                 
-            except Exception:
+            except Exception as e:
                 # 写入失败，清理临时文件
+                logger.error("写入 JSON 文件时发生错误: %s", str(e))
                 if os.path.exists(temp_path):
                     os.unlink(temp_path)
                 raise
                 
-        except Exception:
+        except Exception as e:
+            logger.error("写入 JSON 文件失败: %s", str(e))
             return False
     
     def append(self, item: dict) -> bool:
@@ -170,6 +187,8 @@ class JsonStorage:
             >>> storage = JsonStorage("data/todos.json")
             >>> success = storage.append({"id": "2", "title": "new item"})
         """
+        logger.debug("向 JSON 文件追加数据: %s", self.file_path)
+        
         try:
             # 读取现有数据
             data = self.read()
@@ -178,9 +197,17 @@ class JsonStorage:
             data.append(item)
             
             # 写入文件
-            return self.write(data)
+            result = self.write(data)
             
-        except Exception:
+            if result:
+                logger.debug("数据追加成功")
+            else:
+                logger.error("数据追加失败")
+            
+            return result
+            
+        except Exception as e:
+            logger.error("追加数据时发生错误: %s", str(e))
             return False
     
     def update(self, item: dict, key: str = "id") -> bool:
@@ -200,6 +227,8 @@ class JsonStorage:
             >>> storage = JsonStorage("data/todos.json")
             >>> success = storage.update({"id": "1", "title": "updated"})
         """
+        logger.debug("更新 JSON 文件中的数据: %s", self.file_path)
+        
         try:
             # 读取现有数据
             data = self.read()
@@ -213,12 +242,21 @@ class JsonStorage:
                     break
             
             if not updated:
+                logger.warning("未找到要更新的数据，键: %s=%s", key, item.get(key))
                 return False
             
             # 写入文件
-            return self.write(data)
+            result = self.write(data)
             
-        except Exception:
+            if result:
+                logger.debug("数据更新成功")
+            else:
+                logger.error("数据更新失败")
+            
+            return result
+            
+        except Exception as e:
+            logger.error("更新数据时发生错误: %s", str(e))
             return False
     
     def delete(self, item_id: str, key: str = "id") -> bool:
@@ -238,6 +276,8 @@ class JsonStorage:
             >>> storage = JsonStorage("data/todos.json")
             >>> success = storage.delete("1")
         """
+        logger.debug("从 JSON 文件删除数据: %s", self.file_path)
+        
         try:
             # 读取现有数据
             data = self.read()
@@ -247,12 +287,71 @@ class JsonStorage:
             data = [item for item in data if item.get(key) != item_id]
             
             if len(data) == original_length:
+                logger.warning("未找到要删除的数据，键: %s=%s", key, item_id)
                 return False
             
             # 写入文件
-            return self.write(data)
+            result = self.write(data)
             
-        except Exception:
+            if result:
+                logger.debug("数据删除成功")
+            else:
+                logger.error("数据删除失败")
+            
+            return result
+            
+        except Exception as e:
+            logger.error("删除数据时发生错误: %s", str(e))
+            return False
+    
+    def soft_delete(self, item_id: str, key: str = "id") -> bool:
+        """
+        软删除 JSON 文件中的一条数据
+        
+        根据指定的键查找数据，将其标记为已删除而不是真正删除。
+        需要数据中存在 is_deleted 字段。
+        
+        Args:
+            item_id: 要删除的数据ID
+            key: 用于查找的键名，默认为 "id"
+            
+        Returns:
+            bool: 软删除是否成功
+            
+        使用示例：
+            >>> storage = JsonStorage("data/todos.json")
+            >>> success = storage.soft_delete("1")
+        """
+        logger.debug("软删除 JSON 文件中的数据: %s", self.file_path)
+        
+        try:
+            # 读取现有数据
+            data = self.read()
+            
+            # 查找并标记为已删除
+            updated = False
+            for i, item in enumerate(data):
+                if item.get(key) == item_id:
+                    data[i]["is_deleted"] = True
+                    updated = True
+                    break
+            
+            if not updated:
+                logger.warning("未找到要软删除的数据，键: %s=%s", key, item_id)
+                return False
+            
+            # 写入文件
+            result = self.write(data)
+            
+            if result:
+                logger.debug("数据软删除成功")
+            else:
+                logger.error("数据软删除失败")
+            
+            return result
+            
+        except Exception as e:
+            logger.error("软删除数据时发生错误: %s", str(e))
             return False
     
     def count(self) -> int:

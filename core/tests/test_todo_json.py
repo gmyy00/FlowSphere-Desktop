@@ -57,20 +57,20 @@ class TestJsonStorage(unittest.TestCase):
                 "id": "test-001",
                 "title": "测试待办1",
                 "description": "这是一个测试待办",
-                "deadline": "2026-06-15T18:00",
                 "notification": "2026-06-15T17:30",
                 "repeat": "none",
                 "done": False,
+                "is_deleted": False,
                 "created_at": "2026-06-10T09:00"
             },
             {
                 "id": "test-002",
                 "title": "测试待办2",
                 "description": "这是另一个测试待办",
-                "deadline": "2026-06-12T17:00",
                 "notification": "2026-06-12T16:30",
                 "repeat": "weekly",
                 "done": True,
+                "is_deleted": False,
                 "created_at": "2026-06-01T10:00"
             }
         ]
@@ -183,6 +183,30 @@ class TestJsonStorage(unittest.TestCase):
         self.assertEqual(len(data), 1)
         self.assertEqual(data[0]['id'], 'test-002')
     
+    def test_soft_delete_json(self):
+        """
+        测试软删除 JSON 数据
+        
+        验证能够将数据标记为已删除而不是真正删除
+        """
+        # 软删除数据
+        success = self.storage.soft_delete("test-001")
+        
+        # 验证软删除成功
+        self.assertTrue(success)
+        
+        # 读取并验证
+        data = self.storage.read()
+        self.assertEqual(len(data), 2)
+        
+        # 验证被软删除的数据
+        deleted_item = next(item for item in data if item['id'] == 'test-001')
+        self.assertTrue(deleted_item['is_deleted'])
+        
+        # 验证未被软删除的数据
+        active_item = next(item for item in data if item['id'] == 'test-002')
+        self.assertFalse(active_item['is_deleted'])
+    
     def test_count_json(self):
         """
         测试计算 JSON 数据条数
@@ -272,7 +296,6 @@ class TestJsonStorage(unittest.TestCase):
             id="format-test-001",
             title="格式测试",
             description="测试数据格式",
-            deadline="2026-06-15T18:00",
             notification="2026-06-15T17:30",
             repeat="daily",
             done=False,
@@ -291,10 +314,10 @@ class TestJsonStorage(unittest.TestCase):
         self.assertEqual(restored_todo.id, todo.id)
         self.assertEqual(restored_todo.title, todo.title)
         self.assertEqual(restored_todo.description, todo.description)
-        self.assertEqual(restored_todo.deadline, todo.deadline)
         self.assertEqual(restored_todo.notification, todo.notification)
         self.assertEqual(restored_todo.repeat, todo.repeat)
         self.assertEqual(restored_todo.done, todo.done)
+        self.assertEqual(restored_todo.is_deleted, todo.is_deleted)
         self.assertEqual(restored_todo.created_at, todo.created_at)
     
     def test_multiple_operations(self):
