@@ -3,3 +3,53 @@
     border-radius: 16px;
     border: 1px solid #d4c9b8;
 }
+
+#title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #3c3631;
+}
+
+#close_btn {
+    background: transparent;
+    border: none;
+}
+
+#close_btn:hover {
+    background-color: #e0d8cc;
+    border-radius: 4px;
+}
+
+#pin_btn {
+    background: transparent;
+    border: none;
+}
+
+#pin_btn:hover {
+    background-color: #e0d8cc;
+    border-radius: 4px;
+}
+
+#search {
+    background-color: #ebe5da;
+    border: 1px solid #d4c9b8;
+    border-radius: 8px;
+    padding: 6px 12px;
+    margin: 8px 16px;
+    font-size: 13px;
+    color: #3c3631;
+}
+
+#search:focus {
+    border-color: #b0a090;
+}
+
+#search::placeholder {
+    color: #a09080;
+}
+
+#separator {
+    border: none;
+    border-top: 1px solid #d4c9b8;
+    margin: 0 16px;
+}
